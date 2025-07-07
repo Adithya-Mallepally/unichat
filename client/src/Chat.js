@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:3000');
+const socket = io('https://unichat-production-62b0.up.railway.app');
 
 function Chat({ gender }) {
   const [room, setRoom] = useState(null);
