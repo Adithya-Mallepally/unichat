@@ -1,13 +1,16 @@
 let maleQueue = [];
 let femaleQueue = [];
 
+function removeFromQueue(queue, socket) {
+  return queue.filter(s => s.id !== socket.id);
+}
+
 function setupChat(io) {
   io.on('connection', (socket) => {
     let userGender = null;
     let pairedRoom = null;
 
-    socket.on('join', ({ gender }) => {
-      userGender = gender;
+    function joinQueue(gender) {
       if (gender === 'male') {
         if (femaleQueue.length > 0) {
           const partner = femaleQueue.shift();
@@ -33,6 +36,24 @@ function setupChat(io) {
           socket.emit('waiting');
         }
       }
+    }
+
+    socket.on('join', ({ gender }) => {
+      userGender = gender;
+      joinQueue(gender);
+    });
+
+    socket.on('skip', ({ gender }) => {
+      // Remove from queues
+      maleQueue = removeFromQueue(maleQueue, socket);
+      femaleQueue = removeFromQueue(femaleQueue, socket);
+      // Leave current room
+      if (pairedRoom) {
+        socket.leave(pairedRoom);
+        pairedRoom = null;
+      }
+      // Rejoin queue
+      joinQueue(gender);
     });
 
     socket.on('message', ({ room, message }) => {
@@ -40,11 +61,8 @@ function setupChat(io) {
     });
 
     socket.on('disconnect', () => {
-      if (userGender === 'male') {
-        maleQueue = maleQueue.filter(s => s.id !== socket.id);
-      } else if (userGender === 'female') {
-        femaleQueue = femaleQueue.filter(s => s.id !== socket.id);
-      }
+      maleQueue = removeFromQueue(maleQueue, socket);
+      femaleQueue = removeFromQueue(femaleQueue, socket);
     });
   });
 }
