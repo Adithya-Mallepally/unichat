@@ -14,7 +14,7 @@ const setupChat = require('../chat');
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+var port = normalizePort(process.env.PORT || '5000');
 app.set('port', port);
 
 /**
@@ -96,14 +96,6 @@ const io = new Server(server, {
     origin: '*',
     methods: ['GET', 'POST']
   }
-});
-
-io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
-  // Chat pairing and messaging logic will go here
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-  });
 });
 
 setupChat(io);
